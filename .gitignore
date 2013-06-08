@@ -16,3 +16,5 @@ xcuserdata
 # svn & cvs
 .svn
 CVS
+cell-frontend.sublime-project
+cell-frontend.sublime-workspace
