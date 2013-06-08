@@ -73,70 +73,103 @@ class CellFrontend {
 
 	function process_frontend() {
 
-	// 	if (isset($this->frontend_args['fieldset'])) {
-	// 		$profile_field = $this->frontend_args['fieldset'];
-	// 	} else {
-	// 		return false;
-	// 	}
+		// get base data
+		$args = $this->frontend_args;		
 
-	// 	if ( empty($_POST) || !wp_verify_nonce($_POST['profile_nonce'],'frontend_profile') ) {
-	// 		echo 'Sorry, your nonce did not verify.';
-	// 		die();
-	// 	} else {
+		if ( empty($_POST) || !wp_verify_nonce($_POST['_nonce'],'frontend_'.$args['post-type']) ) {
+			echo 'Sorry, your nonce did not verify.';
+			die();
+		} else {
 
-	// 		// set return value
-	// 		$return = $_POST['_wp_http_referer'];
+			// get base data
+			global $current_user;
+			$frontend_field = $args['fieldset'];
 
-	// 		// save new email & password, if exist
-	// 		if ($_POST['user_email'] != $_POST['user_email_old'] && is_email( $_POST['user_email'] )) {
-	// 			if (email_exists( $_POST['user_email'] )) {
-	// 				$result['type'] = 'error';
-	// 				$result['message'] = __('Email already used.', 'cell-frontend');
-	// 				ajax_response($result,$return);
-	// 			}
-	// 			$userdata['user_email'] = $_POST['user_email'];
-	// 			$userdata['ID'] = $_POST['user_id'];
-	// 			$update_user = true;
-	// 		}
-	// 		if ($_POST['user_password'] != '') {
-	// 			if ($_POST['user_password'] != $_POST['user_password_retype']) {
-	// 				$result['type'] = 'error';
-	// 				$result['message'] = __('Password did not match.', 'cell-frontend');
-	// 				ajax_response($result,$return);
-	// 			} else{
-	// 				$userdata['user_pass'] = $_POST['user_password'];
-	// 				$userdata['ID'] = $_POST['user_id'];
-	// 				$update_user = true;
-	// 			}
-	// 		}
-	// 		if (isset($update_user)) {
-	// 			wp_update_user( $userdata );
-	// 		}
+			// create or update ?
+			if (isset($_POST['ID'])) {
+				$edit = TRUE;
+				$object_id = $_POST['ID'];
+			} else {
+				$edit = FALSE;
+				$post_status = 'draft';
+			}
+
+			// set return value
+			$return = $_POST['_wp_http_referer'];
+
+			// do delete early
+
+			// merge fieldset's fields
+			$current_field = array();
+			foreach ($frontend_field as $key => $value){
+				if (in_array($post_status, $value['status'])) {
+					$current_field = array_merge($value['fields'], $current_field );
+				}
+			}
+
+			// create or update the object first			
+			$update_post_args = array();
+			foreach ($current_field as $field_key => $field_detail) {
+				if ($field_detail['method'] == 'base') {
+					$update_post_args[$field_key] = $_POST[$field_key];
+				}
+			}
+
+			if ($edit) {
+				$update_post_args['ID'] = $object_id;
+
+				$object_id = wp_update_post( $update_post_args );
+			} else {
+				$update_post_args['post_status'] = 'publish';
+				$update_post_args['post_type'] = $args['post-type'];
+				$object_id = wp_insert_post( $update_post_args );
+			}
+
+			// save other method
+			foreach ($current_field as $field_key => $field_detail) {
+				switch ($field_detail['method']) {
+					case 'base':
+						// do nothing
+						break;
+					case 'delete':
+						// do nothing
+						break;
+					case 'meta':
+						update_post_meta( $object_id, $field_key, $_POST[$field_key]);
+						break;
+					case 'taxonomy':
+						wp_set_object_terms( $object_id, intval($_POST[$field_key]), $field_detail['taxonomy'] );
+						break;
+					default:
+						call_user_func_array($field_detail, $object_id);
+						break;
+				}
 
 
-	// 		// merge fieldset's fields
-	// 		$user_fields = array();
-	// 		foreach ($profile_field as $key => $value){
-	// 			$user_fields = array_merge($user_fields, $value['fields']);
-	// 		}
-	// 		// save each field
-	// 		foreach ($user_fields as $field_key => $field_detail) {
-	// 			// special way to save for checkbox
-	// 			if (isset($_POST[$field_key]) && $field_detail['type'] == 'checkbox') {
-	// 				update_user_meta( $_POST['user_id'], $field_key, $_POST[$field_key] );
-	// 			} else {
-	// 				delete_user_meta( $_POST['user_id'], $field_key);
-	// 			}
-	// 			if (isset($_POST[$field_key])) {
-	// 				update_user_meta( $_POST['user_id'], $field_key, $_POST[$field_key] );
-	// 			}
-	// 		}
 
 
-	// 		$result['type'] = 'success';
-	// 		$result['message'] = __('Profile updated.', 'cell-frontend');
-	// 		ajax_response($result,$return);
-	// 	}
+
+				// special way to save for checkbox
+				// if (isset($_POST[$field_key]) && $field_detail['type'] == 'checkbox') {
+				// 	update_user_meta( $_POST['user_id'], $field_key, $_POST[$field_key] );
+				// } else {
+				// 	delete_user_meta( $_POST['user_id'], $field_key);
+				// }
+				// if (isset($_POST[$field_key])) {
+				// 	update_user_meta( $_POST['user_id'], $field_key, $_POST[$field_key] );
+				// }
+
+			}
+
+			// echo '<pre>';
+			// print_r($update_post_args);
+			// echo '</pre>';
+
+
+			$result['type'] = 'success';
+			$result['message'] = __('Updated.', 'cell-frontend');
+			ajax_response($result,$return);
+		}
 	}
 
 

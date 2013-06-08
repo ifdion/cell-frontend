@@ -136,8 +136,11 @@
 	<?php endforeach ?>
 	<div class="form-actions">
 		<button type="submit" class="btn btn-primary"><?php _e('Save', 'cell-frontend') ?></button>
-		<?php wp_nonce_field('frontend_profile','profile_nonce'); ?>
-		<input name="action" value="frontend_profile" type="hidden">
-		<input name="user_id" value="<?php echo $current_user->ID ?>" type="hidden">
+		<?php wp_nonce_field('frontend_'. $args['post-type'],'_nonce'); ?>
+		<input name="action" value="frontend_<?php echo $args['post-type'] ?>" type="hidden">
+		<?php if ($edit): ?>
+			<input name="ID" value="<?php echo $current_view->ID ?>" type="hidden">	
+			<input name="post_status" value="<?php echo $current_view->post_status ?>" type="hidden">
+		<?php endif ?>
 	</div>
 </form>
