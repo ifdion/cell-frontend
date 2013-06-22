@@ -5,7 +5,7 @@
 
 	$frontend_field = $args['fieldset'];
 
-	if ($current_view->post_type == $args['post-type']) {
+	if (isset($current_view->post_type) && $current_view->post_type == $args['post-type']) {
 		// editing a post type
 		$edit = TRUE;
 		$status = $current_view->post_status;
@@ -15,8 +15,10 @@
 		$status = 'draft';
 	}
 
+	$next_step = $this->frontend_args['redirect-wizard'];
+
 ?>
-<form id="frontend-<?php echo $args['post-type'] ?>" name="frontend-<?php echo $args['post-type'] ?>" class="well form-horizontal" action="<?php echo admin_url('admin-ajax.php'); ?>" method="post" enctype="multipart/form-data">
+<form id="frontend-<?php echo $args['post-type'] ?>" name="frontend-<?php echo $args['post-type'] ?>" class="well form-horizontal <?php echo $form_class ?>" action="<?php echo admin_url('admin-ajax.php'); ?>" method="post" enctype="multipart/form-data">
 	<?php foreach ($frontend_field as $key => $value): ?>
 		<?php if ($value['public'] == true  && in_array($status, $value['status'])): ?>
 			<?php
@@ -138,6 +140,8 @@
 		<button type="submit" class="btn btn-primary"><?php _e('Save', 'cell-frontend') ?></button>
 		<?php wp_nonce_field('frontend_'. $args['post-type'],'_nonce'); ?>
 		<input name="action" value="frontend_<?php echo $args['post-type'] ?>" type="hidden">
+		<input name="return" value="<?php echo $next_step ?>" type="hidden">
+
 		<?php if ($edit): ?>
 			<input name="ID" value="<?php echo $current_view->ID ?>" type="hidden">	
 			<input name="post_status" value="<?php echo $current_view->post_status ?>" type="hidden">

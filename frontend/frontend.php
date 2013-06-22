@@ -26,14 +26,16 @@ class CellFrontend {
 		// add login ajax handler function
 		add_action('wp_ajax_frontend_'.$this->frontend_args['post-type'], array( $this, 'process_frontend'));
 
+
+
 	}
 	
 	function redirect_user(){
 		if (isset($this->frontend_args['page-create']) && is_page($this->frontend_args['page-create']) && !is_user_logged_in()){
 			$result['type'] = 'error';
 			$result['message'] = __('Please login.', 'cell-frontend');
-			if (isset($this->frontend_args['page-redirect'])) {
-				$return = get_permalink( get_page_by_path( $this->frontend_args['page-redirect'] ) );
+			if (isset($this->frontend_args['redirect-noaccess'])) {
+				$return = get_permalink( get_page_by_path( $this->frontend_args['redirect-noaccess'] ) );
 			} else{
 				$return = get_bloginfo('url');
 			}
@@ -41,7 +43,18 @@ class CellFrontend {
 		}
 	}
 
-	function shortcode_output(){
+	function shortcode_output($attribute){
+
+		$form_class = '';
+
+		if (isset($attribute['wizard'])) {
+			$wizard = $attribute['wizard'];
+			$next_step = $this->frontend_args['redirect-wizard'];
+			$form_class .= ' wizard';
+		} else {
+			$wizard = FALSE;
+			$next_step = $this->frontend_args['redirect-success'];
+		}
 
 		$args = $this->frontend_args;
 
@@ -95,7 +108,18 @@ class CellFrontend {
 			}
 
 			// set return value
-			$return = $_POST['_wp_http_referer'];
+			if (isset($_POST['return'])) {
+				if (is_page( $_POST['return'] )) {
+					$return = get_permalink( get_page_by_path( $_POST['return'] ) );
+				} else {
+					$return = call_user_func($_POST['return']);
+				}
+			} else {
+				$return = $_POST['_wp_http_referer'];
+			}
+
+			
+			
 
 			// do delete early
 
@@ -138,10 +162,10 @@ class CellFrontend {
 						update_post_meta( $object_id, $field_key, $_POST[$field_key]);
 						break;
 					case 'taxonomy':
-						wp_set_object_terms( $object_id, intval($_POST[$field_key]), $field_detail['taxonomy'] );
+						wp_set_object_terms( $object_id, intval($_POST[$field_key]), $field_key);
 						break;
 					default:
-						call_user_func_array($field_detail, $object_id);
+						call_user_func_array($field_detail['method'], array($object_id, $field_key, $_POST[$field_key]));
 						break;
 				}
 
@@ -160,12 +184,6 @@ class CellFrontend {
 				// }
 
 			}
-
-			// echo '<pre>';
-			// print_r($update_post_args);
-			// echo '</pre>';
-
-
 			$result['type'] = 'success';
 			$result['message'] = __('Updated.', 'cell-frontend');
 			ajax_response($result,$return);
