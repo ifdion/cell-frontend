@@ -15,7 +15,7 @@
 		$status = 'draft';
 	}
 
-	$next_step = $this->frontend_args['redirect-wizard'];
+	// $next_step = $this->frontend_args['redirect-wizard'];
 
 ?>
 <form id="frontend-<?php echo $args['post-type'] ?>" name="frontend-<?php echo $args['post-type'] ?>" class="well form-horizontal <?php echo $form_class ?>" action="<?php echo admin_url('admin-ajax.php'); ?>" method="post" enctype="multipart/form-data">
