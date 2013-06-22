@@ -25,9 +25,6 @@ class CellFrontend {
 
 		// add login ajax handler function
 		add_action('wp_ajax_frontend_'.$this->frontend_args['post-type'], array( $this, 'process_frontend'));
-
-
-
 	}
 	
 	function redirect_user(){
@@ -117,9 +114,6 @@ class CellFrontend {
 			} else {
 				$return = $_POST['_wp_http_referer'];
 			}
-
-			
-			
 
 			// do delete early
 
