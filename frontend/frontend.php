@@ -84,7 +84,7 @@ class CellFrontend {
 	function process_frontend() {
 
 		// get base data
-		$args = $this->frontend_args;		
+		$args = $this->frontend_args;
 
 		if ( empty($_POST) || !wp_verify_nonce($_POST['_nonce'],'frontend_'.$args['post-type']) ) {
 			echo 'Sorry, your nonce did not verify.';
@@ -94,15 +94,6 @@ class CellFrontend {
 			// get base data
 			global $current_user;
 			$frontend_field = $args['fieldset'];
-
-			// create or update ?
-			if (isset($_POST['ID'])) {
-				$edit = TRUE;
-				$object_id = $_POST['ID'];
-			} else {
-				$edit = FALSE;
-				$post_status = 'draft';
-			}
 
 			// set return value
 			if (isset($_POST['return'])) {
@@ -115,36 +106,59 @@ class CellFrontend {
 				$return = $_POST['_wp_http_referer'];
 			}
 
-			// do delete early
+			$process_result = $this->procedural($_POST);
 
-			// merge fieldset's fields
-			$current_field = array();
-			foreach ($frontend_field as $key => $value){
-				if (in_array($post_status, $value['status'])) {
-					$current_field = array_merge($value['fields'], $current_field );
-				}
+			$result['type'] = 'success';
+			$result['message'] = __('Updated.', 'cell-frontend');
+			ajax_response($result,$return);
+		}
+	}
+
+	function procedural($input){
+
+		// get base data
+		$args = $this->frontend_args;
+
+		// get base data
+		global $current_user;
+		$all_field = $args['fieldset'];
+
+		// merge fieldset's fields
+		$current_field = array();
+		foreach ($all_field as $key => $value){
+			$current_field = array_merge($value['fields'], $current_field );
+		}
+
+		// // create or update ?
+		if (isset($input['ID'])) {
+			$edit = TRUE;
+			$object_id = $input['ID'];
+		} else {
+			$edit = FALSE;
+			$post_status = 'draft';
+		}
+
+		// check for 'base ' fields which determine a create or update in post table
+		$update_post_args = array();
+		foreach ($current_field as $field_key => $field_detail) {
+			if ($field_detail['method'] == 'base') {
+				$update_post_args[$field_key] = $input[$field_key];
 			}
+		}
 
-			// create or update the object first			
-			$update_post_args = array();
-			foreach ($current_field as $field_key => $field_detail) {
-				if ($field_detail['method'] == 'base') {
-					$update_post_args[$field_key] = $_POST[$field_key];
-				}
-			}
+		// create or update the object first
+		if ($edit) {
+			$update_post_args['ID'] = $object_id;
+			$object_id = wp_update_post( $update_post_args );
+		} else {
+			$update_post_args['post_status'] = 'publish';
+			$update_post_args['post_type'] = $args['post-type'];
+			$object_id = wp_insert_post( $update_post_args );
+		}
 
-			if ($edit) {
-				$update_post_args['ID'] = $object_id;
-
-				$object_id = wp_update_post( $update_post_args );
-			} else {
-				$update_post_args['post_status'] = 'publish';
-				$update_post_args['post_type'] = $args['post-type'];
-				$object_id = wp_insert_post( $update_post_args );
-			}
-
-			// save other method
-			foreach ($current_field as $field_key => $field_detail) {
+		// save other method
+		foreach ($current_field as $field_key => $field_detail) {
+			if (isset($input[$field_key])) {
 				switch ($field_detail['method']) {
 					case 'base':
 						// do nothing
@@ -153,20 +167,15 @@ class CellFrontend {
 						// do nothing
 						break;
 					case 'meta':
-						update_post_meta( $object_id, $field_key, $_POST[$field_key]);
+						update_post_meta( $object_id, $field_key, $input[$field_key]);
 						break;
 					case 'taxonomy':
-						wp_set_object_terms( $object_id, intval($_POST[$field_key]), $field_key);
+						wp_set_object_terms( $object_id, intval($input[$field_key]), $field_key);
 						break;
 					default:
-						call_user_func_array($field_detail['method'], array($object_id, $field_key, $_POST[$field_key]));
+						call_user_func_array($field_detail['method'], array($object_id, $field_key, $input[$field_key]));
 						break;
 				}
-
-
-
-
-
 				// special way to save for checkbox
 				// if (isset($_POST[$field_key]) && $field_detail['type'] == 'checkbox') {
 				// 	update_user_meta( $_POST['user_id'], $field_key, $_POST[$field_key] );
@@ -176,15 +185,10 @@ class CellFrontend {
 				// if (isset($_POST[$field_key])) {
 				// 	update_user_meta( $_POST['user_id'], $field_key, $_POST[$field_key] );
 				// }
-
 			}
-			$result['type'] = 'success';
-			$result['message'] = __('Updated.', 'cell-frontend');
-			ajax_response($result,$return);
 		}
+		return $object_id;
 	}
-
-
 }
 
 
