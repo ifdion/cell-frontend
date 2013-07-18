@@ -9,13 +9,14 @@
 		// editing a post type
 		$edit = TRUE;
 		$status = $current_view->post_status;
+		$post_data = $current_view;
+		$post_meta = get_post_meta( $current_view->ID);
+
 	} else {
 		// creating a post type
 		$edit = FALSE;
 		$status = 'draft';
 	}
-
-	// $next_step = $this->frontend_args['redirect-wizard'];
 
 ?>
 <form id="frontend-<?php echo $args['post-type'] ?>" name="frontend-<?php echo $args['post-type'] ?>" class="well form-horizontal <?php echo $form_class ?>" action="<?php echo admin_url('admin-ajax.php'); ?>" method="post" enctype="multipart/form-data">
@@ -32,11 +33,32 @@
 				<legend><h4><?php echo $value['title'] ?></h4></legend>
 				<?php foreach ($value['fields'] as $field_key => $field_value): ?>
 					<?php
-						if (isset($user_meta[$field_key][0])) {
-							$current_value = $user_meta[$field_key][0];
+
+						if ($field_value['method'] == 'meta') {
+							if (isset($post_meta[$field_key][0])) {
+								$current_value = $post_meta[$field_key][0];
+							} else {
+								$current_value = '';
+							}
+						} elseif ($field_value['method'] == 'base') {
+							if (isset($post_data->$field_key)) {
+								$current_value = $post_data->$field_key;
+							} else {
+								$current_value = '';
+							}
+						} elseif ($field_value['method'] == 'taxonomy') {
+							// if (isset($post_data->$field_key)) {
+							// 	$current_value = $post_data->$field_key;
+							// } else {
+							// 	$current_value = '';
+							// }
 						} else {
 							$current_value = '';
 						}
+
+
+
+
 						// set additional class
 						$added_class = ' ';
 						if (isset($field_value['attr']['class'])) {
