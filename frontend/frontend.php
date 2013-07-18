@@ -108,6 +108,8 @@ class CellFrontend {
 
 			$process_result = $this->procedural($_POST);
 
+			do_action( 'after_ajax_frontend_'.$args['post-type'], $process_result);
+
 			$result['type'] = 'success';
 			$result['message'] = __('Updated.', 'cell-frontend');
 			ajax_response($result,$return);
@@ -187,6 +189,9 @@ class CellFrontend {
 				// }
 			}
 		}
+
+		do_action( 'after_frontend_'.$args['post-type'], $object_id);
+
 		return $object_id;
 	}
 }
