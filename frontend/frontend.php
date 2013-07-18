@@ -25,6 +25,10 @@ class CellFrontend {
 
 		// add login ajax handler function
 		add_action('wp_ajax_frontend_'.$this->frontend_args['post-type'], array( $this, 'process_frontend'));
+
+		//add editing endpoint
+		add_action( 'init', array($this, 'editing_endpoint') );
+
 	}
 	
 	function redirect_user(){
@@ -193,6 +197,10 @@ class CellFrontend {
 		do_action( 'after_frontend_'.$args['post-type'], $object_id);
 
 		return $object_id;
+	}
+
+	function editing_endpoint() {
+		add_rewrite_endpoint( 'edit', EP_PERMALINK );
 	}
 }
 
