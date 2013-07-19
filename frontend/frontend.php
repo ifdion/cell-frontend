@@ -150,6 +150,9 @@ class CellFrontend {
 			if ($field_detail['method'] == 'base') {
 				$update_post_args[$field_key] = $input[$field_key];
 			}
+			if ($field_key == 'post_title') {
+				$update_post_args['post_name'] = $input['post_title'];
+			}
 		}
 
 		// create or update the object first
