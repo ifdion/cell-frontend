@@ -34,30 +34,32 @@
 				<?php foreach ($value['fields'] as $field_key => $field_value): ?>
 					<?php
 
-						if ($field_value['method'] == 'meta') {
-							if (isset($post_meta[$field_key][0])) {
-								$current_value = $post_meta[$field_key][0];
-							} else {
-								$current_value = '';
-							}
-						} elseif ($field_value['method'] == 'base') {
-							if (isset($post_data->$field_key)) {
-								$current_value = $post_data->$field_key;
-							} else {
-								$current_value = '';
-							}
-						} elseif ($field_value['method'] == 'taxonomy') {
-							// if (isset($post_data->$field_key)) {
-							// 	$current_value = $post_data->$field_key;
-							// } else {
-							// 	$current_value = '';
-							// }
-						} else {
+						switch ($field_value['method']) {
+							case 'meta':
+								if (isset($post_meta[$field_key][0])) {
+									$current_value = $post_meta[$field_key][0];
+								}
+								break;
+							case 'base':
+								if (isset($post_data->$field_key)) {
+									$current_value = $post_data->$field_key;
+								}
+								break;
+							case 'taxonomy':
+								$terms = wp_get_object_terms( $post_data->ID, $field_key);
+								if (isset($terms[0])) {
+									$current_value = $terms[0]->term_id;
+								}
+								break;
+							default:
+								if (isset($field_value['value'])) {
+									$current_value = call_user_func_array($field_value['value'], array($post_data->ID,$field_key));
+								}
+								break;
+						}
+						if (!isset($current_value)) {
 							$current_value = '';
 						}
-
-
-
 
 						// set additional class
 						$added_class = ' ';
