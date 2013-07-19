@@ -129,6 +129,11 @@ class CellFrontend {
 		global $current_user;
 		$all_field = $args['fieldset'];
 
+		// do delete early
+		if (isset($input['delete']) && $input['delete'] == 1) {
+			wp_trash_post( $input['ID'] );
+		}
+
 		// merge fieldset's fields
 		$current_field = array();
 		foreach ($all_field as $key => $value){
