@@ -13,17 +13,17 @@
 					$(this).hide();
 				}
 			});
-		}
 
-		// show hide on change
-		$('.trigger').live('change',function(){
-			var target = $(this).attr('name');
-			var target_object = $('[data-show-on="'+target+'"]');
-			if ($(this).is(":checked")) {
-				target_object.show();
-			} else {
-				target_object.hide();
-			}
-		});
+			// show hide on change
+			$('.trigger').live('change',function(){
+				var target = $(this).attr('name');
+				var target_object = $('[data-show-on="'+target+'"]');
+				if ($(this).is(":checked")) {
+					target_object.show();
+				} else {
+					target_object.hide();
+				}
+			});
+		}
 	});
 }(jQuery));
