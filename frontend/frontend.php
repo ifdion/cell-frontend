@@ -170,6 +170,13 @@ class CellFrontend {
 			$object_id = wp_insert_post( $update_post_args );
 		}
 
+		// save generated field
+		if (isset($args['fieldset']['generated'])) {
+			foreach ($args['fieldset']['generated']['fields'] as $field_key => $field_detail) {
+				call_user_func_array($field_detail['method'], array($object_id, $field_key));
+			}
+		}
+
 		// save other method
 		foreach ($current_field as $field_key => $field_detail) {
 			if (isset($input[$field_key])) {
