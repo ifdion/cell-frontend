@@ -110,6 +110,17 @@ class CellFrontend {
 				$return = $_POST['_wp_http_referer'];
 			}
 
+			// check for unique post title, if is post-type-term
+			if (isset($args['post-type-term']) && $args['post-type-term'] == TRUE) {
+				if (unique_post_title($_POST['post_title'])) {
+				} else {
+					$return = $_POST['_wp_http_referer'];
+					$result['type'] = 'error';
+					$result['message'] = __('Already exist.', 'cell-frontend');
+					ajax_response($result,$return);
+				}
+			}
+
 			$process_result = $this->procedural($_POST);
 
 			do_action( 'after_ajax_frontend_'.$args['post-type'], $process_result);
@@ -131,7 +142,8 @@ class CellFrontend {
 
 		// do delete early
 		if (isset($input['delete']) && $input['delete'] == 1) {
-			wp_trash_post( $input['ID'] );
+			// wp_trash_post( $input['ID'] );
+			wp_delete_post( $input['ID'] );
 		}
 
 		// merge fieldset's fields
@@ -147,6 +159,13 @@ class CellFrontend {
 		} else {
 			$edit = FALSE;
 			$post_status = 'draft';
+		}
+
+		// check for unique post title, if is post-type-term
+		if (isset($args['post-type-term']) && $args['post-type-term'] == TRUE) {
+			if (!unique_post_title($input['post_title'])) {
+				return FALSE;
+			}
 		}
 
 		// check for 'base ' fields which determine a create or update in post table
