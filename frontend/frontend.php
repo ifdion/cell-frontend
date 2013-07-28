@@ -112,12 +112,14 @@ class CellFrontend {
 
 			// check for unique post title, if is post-type-term
 			if (isset($args['post-type-term']) && $args['post-type-term'] == TRUE) {
-				if (unique_post_title($_POST['post_title'])) {
-				} else {
-					$return = $_POST['_wp_http_referer'];
-					$result['type'] = 'error';
-					$result['message'] = __('Already exist.', 'cell-frontend');
-					ajax_response($result,$return);
+				if (isset($_POST['post_title_old']) && $_POST['post_title_old'] != $_POST['post_title']) {
+					if (unique_post_title($_POST['post_title'])) {
+					} else {
+						$return = $_POST['_wp_http_referer'];
+						$result['type'] = 'error';
+						$result['message'] = __('Already exist.', 'cell-frontend');
+						ajax_response($result,$return);
+					}
 				}
 			}
 
@@ -163,26 +165,30 @@ class CellFrontend {
 
 		// check for unique post title, if is post-type-term
 		if (isset($args['post-type-term']) && $args['post-type-term'] == TRUE) {
-			if (!unique_post_title($input['post_title'])) {
-				return FALSE;
+			if (isset($input['post_title_old']) && $input['post_title_old'] != $input['post_title']) {
+				if (!unique_post_title($input['post_title'])) {
+					return FALSE;
+				}
 			}
 		}
 
 		// check for 'base ' fields which determine a create or update in post table
 		$update_post_args = array();
 		foreach ($current_field as $field_key => $field_detail) {
-			if ($field_detail['method'] == 'base') {
+			if ($field_detail['method'] == 'base' && ($input[$field_key] != $input[$field_key.'_old'])) {
 				$update_post_args[$field_key] = $input[$field_key];
 			}
-			if ($field_key == 'post_title') {
+			if (isset($update_post_args['post_name'])) {
 				$update_post_args['post_name'] = $input['post_title'];
 			}
 		}
 
 		// create or update the object first
 		if ($edit) {
-			$update_post_args['ID'] = $object_id;
-			$object_id = wp_update_post( $update_post_args );
+			if ((count($update_post_args) > 0)) {
+				$update_post_args['ID'] = $object_id;
+				$object_id = wp_update_post( $update_post_args );
+			}
 		} else {
 			$update_post_args['post_status'] = 'publish';
 			$update_post_args['post_type'] = $args['post-type'];

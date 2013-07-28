@@ -84,6 +84,9 @@
 										<label class="control-label" for="<?php echo $field_key ?>"><?php echo $field_value['title'] ?></label>
 										<div class="controls">
 											<input type="text" class="input-xlarge <?php echo $added_class ?>" id="<?php echo $field_key ?>" name="<?php echo $field_key ?>" value="<?php echo $current_value ?>" <?php echo $additional_attr ?>>
+											<?php if ($edit): ?>
+												<input type="hidden" name="<?php echo $field_key ?>_old" value="<?php echo $current_value ?>"/>
+											<?php endif ?>
 										</div>
 									</div>
 								<?php
@@ -94,6 +97,9 @@
 										<label class="control-label" for="<?php echo $field_key ?>"><?php echo $field_value['title'] ?></label>
 										<div class="controls">
 											<textarea type="checkbox" class="input-xlarge <?php echo $added_class ?>" id="<?php echo $field_key ?>" name="<?php echo $field_key ?>" <?php echo $additional_attr ?>><?php echo $current_value ?></textarea>
+											<?php if ($edit): ?>
+												<input type="hidden" name="<?php echo $field_key ?>_old" value="<?php echo $current_value ?>"/>
+											<?php endif ?>
 										</div>
 									</div>
 								<?php
@@ -121,6 +127,9 @@
 														<input type="radio" id="<?php echo $field_key.'-'.$field_value['option'] ?>" class="<?php echo $added_class ?>"value="<?php echo $option_value ?>" name="<?php echo $field_key ?>" <?php checked($current_value, $option_value) ?> <?php echo $additional_attr ?>> <?php echo $option_title ?>
 													</label>
 												<?php endforeach ?>
+												<?php if ($edit): ?>
+													<input type="hidden" name="<?php echo $field_key ?>_old" value="<?php echo $current_value ?>"/>
+												<?php endif ?>
 											<?php else: ?>
 												<?php _e( 'Missing options.','cell-frontend' ) ?>
 											<?php endif ?>
@@ -146,6 +155,9 @@
 														<option value="<?php echo $option_value ?>"  <?php selected($current_value, $option_value) ?> > <?php echo $option_title ?></option>
 													<?php endforeach ?>
 												</select>
+												<?php if ($edit): ?>
+													<input type="hidden" name="<?php echo $field_key ?>_old" value="<?php echo $current_value ?>"/>
+												<?php endif ?>
 											<?php else: ?>
 												<?php _e( 'Missing options.','cell-frontend' ) ?>
 											<?php endif ?>
