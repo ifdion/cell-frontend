@@ -28,7 +28,6 @@ class CellFrontend {
 
 		//add editing endpoint
 		add_action( 'init', array($this, 'editing_endpoint') );
-
 	}
 	
 	function redirect_user(){
@@ -61,7 +60,10 @@ class CellFrontend {
 
 		if(is_user_logged_in() && isset($this->frontend_args['fieldset'])){
 
-			wp_enqueue_script('frontend-script', plugins_url('cell-frontend/js/frontend.js'), array('jquery'), '1.0', true);
+			wp_enqueue_script('bootstrap-datepicker', plugins_url('cell-frontend/js/bootstrap-datepicker.js'), array('bootstrap','jquery'), '1.0', true);
+
+			wp_enqueue_script('frontend-script', plugins_url('cell-frontend/js/frontend.js'), array('bootstrap', 'bootstrap-datepicker','jquery'), '1.0', true);
+			
 			wp_enqueue_style( 'cell-frontend-styles', plugins_url( 'cell-frontend/css/cell-frontend.css' ) );
 
 			if (isset($this->frontend_args['include-script'])) {

@@ -91,6 +91,25 @@
 									</div>
 								<?php
 							break;
+							case 'datepicker':
+								?>
+
+									<div class="control-group">
+										<label class="control-label" for="<?php echo $field_key ?>"><?php echo $field_value['title'] ?></label>
+										<div class="controls">
+											<?php
+												$formated_date = date( 'd-m-Y', strtotime( $current_value ) );											
+											?>
+											<input type="text" class="input-xlarge datepicker <?php echo $added_class ?>" id="<?php echo $field_key ?>" name="<?php echo $field_key ?>" value="<?php echo $formated_date ?>" <?php echo $additional_attr ?> data-date-format="dd-mm-yyyy">
+											<?php if ($edit): ?>
+												<input type="hidden" name="<?php echo $field_key ?>_old" value="<?php echo $formated_date ?>"/>
+											<?php endif ?>
+
+
+										</div>
+									</div>
+								<?php
+							break;
 							case 'textarea':
 								?>
 									<div class="control-group">

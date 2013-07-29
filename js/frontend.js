@@ -1,3 +1,4 @@
+
 (function ($) {
 	"use strict";
 	$(function () {
@@ -26,4 +27,13 @@
 			});
 		}
 	});
+
+	if ($('.datepicker').length > 0) {
+		$('.datepicker').datepicker().on('changeDate', function(ev){
+			$(this).datepicker('hide');
+		});
+	}
+
+
+
 }(jQuery));
