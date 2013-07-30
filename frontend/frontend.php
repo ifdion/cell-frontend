@@ -177,12 +177,26 @@ class CellFrontend {
 		// check for 'base ' fields which determine a create or update in post table
 		$update_post_args = array();
 		foreach ($current_field as $field_key => $field_detail) {
+			if (!isset($input[$field_key.'_old'])) {
+				$input[$field_key.'_old'] = '';
+			}
 			if ($field_detail['method'] == 'base' && ($input[$field_key] != $input[$field_key.'_old'])) {
 				$update_post_args[$field_key] = $input[$field_key];
 			}
 			if (isset($update_post_args['post_name'])) {
 				$update_post_args['post_name'] = $input['post_title'];
 			}
+		}
+
+		// reformat date input to default date and time
+		if (isset($update_post_args['post_date'])) {
+			if ($edit) {
+				$post_time = $input['post_date_time'];
+			} else {
+				$post_time = date( 'H:i:s' );
+			}
+			$post_date = date( 'Y-m-d H:i:s', strtotime( $update_post_args['post_date'] .' '.$post_time) );
+			$update_post_args['post_date'] = $post_date;
 		}
 
 		// create or update the object first
