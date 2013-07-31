@@ -177,8 +177,14 @@ class CellFrontend {
 		// check for 'base ' fields which determine a create or update in post table
 		$update_post_args = array();
 		foreach ($current_field as $field_key => $field_detail) {
+			// empty *_old fields for post create
 			if (!isset($input[$field_key.'_old'])) {
 				$input[$field_key.'_old'] = '';
+			}
+
+			// saves empty checkbox
+			if($field_detail['type'] == 'checkbox' && $field_key != 'delete' && !isset($input[$field_key])){
+				$input[$field_key] = 0;
 			}
 			if ($field_detail['method'] == 'base' && ($input[$field_key] != $input[$field_key.'_old'])) {
 				$update_post_args[$field_key] = $input[$field_key];
@@ -218,6 +224,12 @@ class CellFrontend {
 			}
 		}
 
+		// echo '<pre>';
+		// print_r($current_field);
+		// print_r($input);
+		// echo '</pre>';
+		// wp_die( 'test saving checkbox' );
+
 		// save other method
 		foreach ($current_field as $field_key => $field_detail) {
 			if (isset($input[$field_key])) {
@@ -229,7 +241,11 @@ class CellFrontend {
 						// do nothing
 						break;
 					case 'meta':
-						update_post_meta( $object_id, $field_key, $input[$field_key]);
+						if ($input[$field_key] == 0) {
+							delete_post_meta( $object_id, $field_key);
+						} else {
+							update_post_meta( $object_id, $field_key, $input[$field_key]);
+						}
 						break;
 					case 'taxonomy':
 						wp_set_object_terms( $object_id, intval($input[$field_key]), $field_key);

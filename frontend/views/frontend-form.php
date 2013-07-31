@@ -138,6 +138,9 @@
 												<input type="checkbox" class="<?php echo $added_class ?>" id="<?php echo $field_key ?>" name="<?php echo $field_key ?>" value="1" <?php checked($current_value, 1) ?> <?php echo $additional_attr ?>>
 												<?php echo $field_value['title'] ?>
 											</label>
+											<?php if ($edit): ?>
+												<input type="hidden" name="<?php echo $field_key ?>_old" value="<?php echo $current_value ?>"/>
+											<?php endif ?>
 										</div>
 									</div>
 								<?php
