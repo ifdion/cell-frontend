@@ -16,7 +16,14 @@
 		// creating a post type
 		$edit = FALSE;
 		$status = 'draft';
+
+		//set to current tax if is in tax view
+		if (is_tax()) {
+			$in_term = TRUE;
+			$term = $current_view;
+		}
 	}
+
 
 ?>
 <form id="frontend-<?php echo $args['post-type'] ?>" name="frontend-<?php echo $args['post-type'] ?>" class="well form-horizontal <?php echo $form_class ?>" action="<?php echo admin_url('admin-ajax.php'); ?>" method="post" enctype="multipart/form-data">
@@ -74,128 +81,131 @@
 								$additional_attr .= ' '.$attr_key.'="'.$attr_value.'"';
 							}
 						}
-					?>
-					<?php
 
-						switch ($field_value['type']) {
-							case 'text':
-								?>
-									<div class="control-group">
-										<label class="control-label" for="<?php echo $field_key ?>"><?php echo $field_value['title'] ?></label>
-										<div class="controls">
-											<input type="text" class="input-xlarge <?php echo $added_class ?>" id="<?php echo $field_key ?>" name="<?php echo $field_key ?>" value="<?php echo $current_value ?>" <?php echo $additional_attr ?>>
-											<?php if ($edit): ?>
-												<input type="hidden" name="<?php echo $field_key ?>_old" value="<?php echo $current_value ?>"/>
-											<?php endif ?>
-										</div>
-									</div>
-								<?php
-							break;
-							case 'datepicker':
-								?>
+						if ($edit == FALSE && isset($in_term) && $field_key == $term->taxonomy) {
+							echo '<input type="hidden" name="'. $field_key .'" value="'. $term->term_id .'"/>';
+						} else {
 
-									<div class="control-group">
-										<label class="control-label" for="<?php echo $field_key ?>"><?php echo $field_value['title'] ?></label>
-										<div class="controls">
-											<?php
-												if ($current_value == '') {
-													$formated_date = date( 'd-m-Y' );
-												} else {
-													$formated_date = date( 'd-m-Y', strtotime( $current_value ) );	
-													$formated_time = date( 'H:i:s', strtotime( $current_value ) );
-												}
-
-											?>
-											<input type="text" class="input-xlarge datepicker <?php echo $added_class ?>" id="<?php echo $field_key ?>" name="<?php echo $field_key ?>" value="<?php echo $formated_date ?>" <?php echo $additional_attr ?> data-date-format="dd-mm-yyyy">
-											<?php if ($edit): ?>
-												<input type="hidden" name="<?php echo $field_key ?>_old" value="<?php echo $formated_date ?>"/>
-												<input type="hidden" name="<?php echo $field_key ?>_time" value="<?php echo $formated_time ?>"/>
-											<?php endif ?>
-
-
-										</div>
-									</div>
-								<?php
-							break;
-							case 'textarea':
-								?>
-									<div class="control-group">
-										<label class="control-label" for="<?php echo $field_key ?>"><?php echo $field_value['title'] ?></label>
-										<div class="controls">
-											<textarea type="checkbox" class="input-xlarge <?php echo $added_class ?>" id="<?php echo $field_key ?>" name="<?php echo $field_key ?>" <?php echo $additional_attr ?>><?php echo $current_value ?></textarea>
-											<?php if ($edit): ?>
-												<input type="hidden" name="<?php echo $field_key ?>_old" value="<?php echo $current_value ?>"/>
-											<?php endif ?>
-										</div>
-									</div>
-								<?php
-							break;
-							case 'checkbox':
-								?>
-									<div class="control-group">
-										<div class="controls">
-											<label class="checkbox" for="<?php echo $field_key ?>">
-												<input type="checkbox" class="<?php echo $added_class ?>" id="<?php echo $field_key ?>" name="<?php echo $field_key ?>" value="1" <?php checked($current_value, 1) ?> <?php echo $additional_attr ?>>
-												<?php echo $field_value['title'] ?>
-											</label>
-											<?php if ($edit): ?>
-												<input type="hidden" name="<?php echo $field_key ?>_old" value="<?php echo $current_value ?>"/>
-											<?php endif ?>
-										</div>
-									</div>
-								<?php
-							break;
-							case 'radio':
-								?>
-									<div class="control-group">
-										<label class="control-label"><?php echo $field_value['title'] ?></label>
-										<div class="controls">
-											<?php if (isset($field_value['option'])): ?>
-												<?php foreach ($field_value['option'] as $option_value => $option_title): ?>
-													<label class="radio inline">
-														<input type="radio" id="<?php echo $field_key.'-'.$field_value['option'] ?>" class="<?php echo $added_class ?>"value="<?php echo $option_value ?>" name="<?php echo $field_key ?>" <?php checked($current_value, $option_value) ?> <?php echo $additional_attr ?>> <?php echo $option_title ?>
-													</label>
-												<?php endforeach ?>
+							switch ($field_value['type']) {
+								case 'text':
+									?>
+										<div class="control-group">
+											<label class="control-label" for="<?php echo $field_key ?>"><?php echo $field_value['title'] ?></label>
+											<div class="controls">
+												<input type="text" class="input-xlarge <?php echo $added_class ?>" id="<?php echo $field_key ?>" name="<?php echo $field_key ?>" value="<?php echo $current_value ?>" <?php echo $additional_attr ?>>
 												<?php if ($edit): ?>
 													<input type="hidden" name="<?php echo $field_key ?>_old" value="<?php echo $current_value ?>"/>
 												<?php endif ?>
-											<?php else: ?>
-												<?php _e( 'Missing options.','cell-frontend' ) ?>
-											<?php endif ?>
+											</div>
 										</div>
-									</div>
-								<?php
-							break;
-							case 'select':
-								?>
-									<div class="control-group">
-										<label class="control-label"><?php echo $field_value['title'] ?></label>
-										<div class="controls">
-											<?php if (isset($field_value['option'])): ?>
+									<?php
+								break;
+								case 'datepicker':
+									?>
+
+										<div class="control-group">
+											<label class="control-label" for="<?php echo $field_key ?>"><?php echo $field_value['title'] ?></label>
+											<div class="controls">
 												<?php
-													if (!is_array($field_value['option'])) {
-														$option = call_user_func_array($field_value['option'],array($current_user->ID));
+													if ($current_value == '') {
+														$formated_date = date( 'd-m-Y' );
 													} else {
-														$option = $field_value['option'];
+														$formated_date = date( 'd-m-Y', strtotime( $current_value ) );	
+														$formated_time = date( 'H:i:s', strtotime( $current_value ) );
 													}
+
 												?>
-												<select name="<?php echo $field_key ?>" class="<?php echo $added_class ?>" <?php echo $additional_attr ?>>
-													<?php foreach ($option as $option_value => $option_title): ?>
-														<option value="<?php echo $option_value ?>"  <?php selected($current_value, $option_value) ?> > <?php echo $option_title ?></option>
-													<?php endforeach ?>
-												</select>
+												<input type="text" class="input-xlarge datepicker <?php echo $added_class ?>" id="<?php echo $field_key ?>" name="<?php echo $field_key ?>" value="<?php echo $formated_date ?>" <?php echo $additional_attr ?> data-date-format="dd-mm-yyyy">
+												<?php if ($edit): ?>
+													<input type="hidden" name="<?php echo $field_key ?>_old" value="<?php echo $formated_date ?>"/>
+													<input type="hidden" name="<?php echo $field_key ?>_time" value="<?php echo $formated_time ?>"/>
+												<?php endif ?>
+
+
+											</div>
+										</div>
+									<?php
+								break;
+								case 'textarea':
+									?>
+										<div class="control-group">
+											<label class="control-label" for="<?php echo $field_key ?>"><?php echo $field_value['title'] ?></label>
+											<div class="controls">
+												<textarea type="checkbox" class="input-xlarge <?php echo $added_class ?>" id="<?php echo $field_key ?>" name="<?php echo $field_key ?>" <?php echo $additional_attr ?>><?php echo $current_value ?></textarea>
 												<?php if ($edit): ?>
 													<input type="hidden" name="<?php echo $field_key ?>_old" value="<?php echo $current_value ?>"/>
 												<?php endif ?>
-											<?php else: ?>
-												<?php _e( 'Missing options.','cell-frontend' ) ?>
-											<?php endif ?>
+											</div>
 										</div>
-									</div>
-								<?php
-							break;
-							default:
-							break;
+									<?php
+								break;
+								case 'checkbox':
+									?>
+										<div class="control-group">
+											<div class="controls">
+												<label class="checkbox" for="<?php echo $field_key ?>">
+													<input type="checkbox" class="<?php echo $added_class ?>" id="<?php echo $field_key ?>" name="<?php echo $field_key ?>" value="1" <?php checked($current_value, 1) ?> <?php echo $additional_attr ?>>
+													<?php echo $field_value['title'] ?>
+												</label>
+												<?php if ($edit): ?>
+													<input type="hidden" name="<?php echo $field_key ?>_old" value="<?php echo $current_value ?>"/>
+												<?php endif ?>
+											</div>
+										</div>
+									<?php
+								break;
+								case 'radio':
+									?>
+										<div class="control-group">
+											<label class="control-label"><?php echo $field_value['title'] ?></label>
+											<div class="controls">
+												<?php if (isset($field_value['option'])): ?>
+													<?php foreach ($field_value['option'] as $option_value => $option_title): ?>
+														<label class="radio inline">
+															<input type="radio" id="<?php echo $field_key.'-'.$field_value['option'] ?>" class="<?php echo $added_class ?>"value="<?php echo $option_value ?>" name="<?php echo $field_key ?>" <?php checked($current_value, $option_value) ?> <?php echo $additional_attr ?>> <?php echo $option_title ?>
+														</label>
+													<?php endforeach ?>
+													<?php if ($edit): ?>
+														<input type="hidden" name="<?php echo $field_key ?>_old" value="<?php echo $current_value ?>"/>
+													<?php endif ?>
+												<?php else: ?>
+													<?php _e( 'Missing options.','cell-frontend' ) ?>
+												<?php endif ?>
+											</div>
+										</div>
+									<?php
+								break;
+								case 'select':
+									?>
+										<div class="control-group">
+											<label class="control-label"><?php echo $field_value['title'] ?></label>
+											<div class="controls">
+												<?php if (isset($field_value['option'])): ?>
+													<?php
+														if (!is_array($field_value['option'])) {
+															$option = call_user_func_array($field_value['option'],array($current_user->ID));
+														} else {
+															$option = $field_value['option'];
+														}
+													?>
+													<select name="<?php echo $field_key ?>" class="<?php echo $added_class ?>" <?php echo $additional_attr ?>>
+														<?php foreach ($option as $option_value => $option_title): ?>
+															<option value="<?php echo $option_value ?>"  <?php selected($current_value, $option_value) ?> > <?php echo $option_title ?></option>
+														<?php endforeach ?>
+													</select>
+													<?php if ($edit): ?>
+														<input type="hidden" name="<?php echo $field_key ?>_old" value="<?php echo $current_value ?>"/>
+													<?php endif ?>
+												<?php else: ?>
+													<?php _e( 'Missing options.','cell-frontend' ) ?>
+												<?php endif ?>
+											</div>
+										</div>
+									<?php
+								break;
+								default:
+								break;
+							}
 						}
 					?>
 				<?php endforeach ?>
