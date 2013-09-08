@@ -147,7 +147,13 @@ class CellFrontend {
 		// do delete early
 		if (isset($input['delete']) && $input['delete'] == 1) {
 			// wp_trash_post( $input['ID'] );
+			$post_meta = get_post_meta( $input['ID'] );
+			if (isset($post_meta['mirror'][0])) {
+				wp_delete_post( $post_meta['mirror'][0] );
+			}
 			wp_delete_post( $input['ID'] );
+
+			return TRUE;
 		}
 
 		// merge fieldset's fields
