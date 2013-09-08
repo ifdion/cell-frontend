@@ -196,11 +196,12 @@ class CellFrontend {
 
 		// reformat date input to default date and time
 		if (isset($update_post_args['post_date'])) {
-			if ($edit) {
+			if (isset($input['post_date_time'])) {
 				$post_time = $input['post_date_time'];
 			} else {
 				$post_time = date( 'H:i:s' );
 			}
+
 			$post_date = date( 'Y-m-d H:i:s', strtotime( $update_post_args['post_date'] .' '.$post_time) );
 			$update_post_args['post_date'] = $post_date;
 		}
