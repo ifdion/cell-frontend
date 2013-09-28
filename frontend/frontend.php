@@ -120,6 +120,11 @@ class CellFrontend {
 						$return = $_POST['_wp_http_referer'];
 						$result['type'] = 'error';
 						$result['message'] = __('Already exist.', 'cell-frontend');
+
+						$timeStop = timer_stop(0);
+						$numQueries = get_num_queries();
+						$result['message'] .= ' <span class="pull-right">'.$numQueries.'-'.$timeStop.'</span>';
+
 						ajax_response($result,$return);
 					}
 				}
@@ -131,6 +136,11 @@ class CellFrontend {
 
 			$result['type'] = 'success';
 			$result['message'] = __('Updated.', 'cell-frontend');
+
+			$timeStop = timer_stop(0);
+			$numQueries = get_num_queries();
+			$result['message'] .= ' <span class="pull-right">'.$numQueries.'-'.$timeStop.'</span>';
+
 			ajax_response($result,$return);
 		}
 	}
@@ -211,6 +221,9 @@ class CellFrontend {
 			$post_date = date( 'Y-m-d H:i:s', strtotime( $update_post_args['post_date'] .' '.$post_time) );
 			$update_post_args['post_date'] = $post_date;
 		}
+
+		// automatically publish edited post with non future date
+		
 
 		// create or update the object first
 		if ($edit) {
