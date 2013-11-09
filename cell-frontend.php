@@ -3,7 +3,7 @@
 Plugin Name: Cell Frontend
 Plugin URI: http://google.com
 Description: Add front end registration, profile editing
-Version: 0.0
+Version: 0.0.1
 Author: Dion
 Author URI: http://google.com
 Author Email: ifdion@gmail.com

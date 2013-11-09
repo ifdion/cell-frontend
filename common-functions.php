@@ -56,7 +56,7 @@ if (!function_exists('the_global_message')) {
 			foreach ($global_message as $message){
 				?>
 					<div id="" class="alert alert-<?php echo $message['type'] ?>">
-						<a href="" class="delete">✕</a> <span><?php echo $message['message'] ?></span>
+						<button type="button" class="close" data-dismiss="alert">×</button> <span><?php echo $message['message'] ?></span>
 					</div>
 				<?php
 			}
@@ -69,14 +69,14 @@ if (!function_exists('the_global_message')) {
 ---------------------------------------------------------------
 */
 if (!function_exists('rearrange')) {
-function rearrange( $arr ){
-	foreach( $arr as $key => $all ){
-		foreach( $all as $i => $val ){
-			$new[$i][$key] = $val;
+	function rearrange( $arr ){
+		foreach( $arr as $key => $all ){
+			foreach( $all as $i => $val ){
+				$new[$i][$key] = $val;
+			}
 		}
+		return $new;
 	}
-	return $new;
-}	
 }
 
 

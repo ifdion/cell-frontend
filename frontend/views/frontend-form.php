@@ -88,11 +88,18 @@
 
 							switch ($field_value['type']) {
 								case 'text':
+								
+									if (isset($field_value['input_type'])) {
+										$input_type = $field_value['input_type'];
+									} else {
+										$input_type = 'text';
+									}
+									
 									?>
 										<div class="control-group">
 											<label class="control-label" for="<?php echo $field_key ?>"><?php echo $field_value['title'] ?></label>
 											<div class="controls">
-												<input type="text" class="input-xlarge <?php echo $added_class ?>" id="<?php echo $field_key ?>" name="<?php echo $field_key ?>" value="<?php echo $current_value ?>" <?php echo $additional_attr ?>>
+												<input type="<?php echo $input_type ?>" class="input-xlarge <?php echo $added_class ?>" id="<?php echo $field_key ?>" name="<?php echo $field_key ?>" value="<?php echo $current_value ?>" <?php echo $additional_attr ?>>
 												<?php if ($edit): ?>
 													<input type="hidden" name="<?php echo $field_key ?>_old" value="<?php echo $current_value ?>"/>
 												<?php endif ?>

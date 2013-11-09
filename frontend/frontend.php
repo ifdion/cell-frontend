@@ -27,7 +27,8 @@ class CellFrontend {
 		add_action('wp_ajax_frontend_'.$this->frontend_args['post-type'], array( $this, 'process_frontend'));
 
 		//add editing endpoint
-		add_action( 'init', array($this, 'editing_endpoint') );
+		add_action( 'init', array($this, 'editing_endpoint'),1001 );
+
 	}
 	
 	function redirect_user(){
@@ -60,9 +61,10 @@ class CellFrontend {
 
 		if(is_user_logged_in() && isset($this->frontend_args['fieldset'])){
 
-			wp_enqueue_script('bootstrap-datepicker', plugins_url('cell-frontend/js/bootstrap-datepicker.js'), array('bootstrap','jquery'), '1.0', true);
+			wp_register_script( 'bootstrap', plugins_url('cell-frontend/js/bootstrap.min.js'), array( 'jquery' ), '2.2.2', true );
+			wp_register_script('datepicker', plugins_url('cell-frontend/js/bootstrap-datepicker.js'), array('bootstrap','jquery'), '1.0', true);
 
-			wp_enqueue_script('frontend-script', plugins_url('cell-frontend/js/frontend.js'), array('bootstrap', 'bootstrap-datepicker','jquery'), '1.0', true);
+			wp_enqueue_script('frontend-script', plugins_url('cell-frontend/js/frontend.js'), array('bootstrap', 'datepicker','jquery'), '1.0.1', true);
 			
 			wp_enqueue_style( 'cell-frontend-styles', plugins_url( 'cell-frontend/css/cell-frontend.css' ) );
 
@@ -130,7 +132,25 @@ class CellFrontend {
 				}
 			}
 
-			$process_result = $this->procedural($_POST);
+
+			// do delete early
+			if (isset($_POST['delete']) && $_POST['delete'] == 1) {
+				// wp_trash_post( $_POST['ID'] );
+				$post_meta = get_post_meta( $_POST['ID'] );
+				if (isset($post_meta['mirror'][0])) {
+					do_action( 'after_ajax_frontend_'.$args['post-type'], $post_meta['mirror'][0]);
+					wp_delete_post( $post_meta['mirror'][0] );
+				}
+
+				do_action( 'after_ajax_frontend_'.$args['post-type'], $_POST['ID']);
+				wp_delete_post( $_POST['ID'] );
+
+				$process_result = $_POST['ID'];
+
+			} else {
+				$process_result = $this->procedural($_POST);
+
+			}
 
 			do_action( 'after_ajax_frontend_'.$args['post-type'], $process_result);
 
@@ -153,18 +173,6 @@ class CellFrontend {
 		// get base data
 		global $current_user;
 		$all_field = $args['fieldset'];
-
-		// do delete early
-		if (isset($input['delete']) && $input['delete'] == 1) {
-			// wp_trash_post( $input['ID'] );
-			$post_meta = get_post_meta( $input['ID'] );
-			if (isset($post_meta['mirror'][0])) {
-				wp_delete_post( $post_meta['mirror'][0] );
-			}
-			wp_delete_post( $input['ID'] );
-
-			return TRUE;
-		}
 
 		// merge fieldset's fields
 		$current_field = array();
@@ -203,17 +211,17 @@ class CellFrontend {
 				$input[$field_key] = 0;
 			}
 			if ($field_detail['method'] == 'base' && ($input[$field_key] != $input[$field_key.'_old'])) {
-				$update_post_args[$field_key] = $input[$field_key];
+				$update_post_args[$field_key] = wp_kses_data($input[$field_key]);
 			}
 			if (isset($update_post_args['post_name'])) {
-				$update_post_args['post_name'] = $input['post_title'];
+				$update_post_args['post_name'] = wp_kses_data($input['post_title']);
 			}
 		}
 
 		// reformat date input to default date and time
 		if (isset($update_post_args['post_date'])) {
 			if (isset($input['post_date_time'])) {
-				$post_time = $input['post_date_time'];
+				$post_time = wp_kses_data($input['post_date_time']);
 			} else {
 				$post_time = date( 'H:i:s' );
 			}
@@ -244,12 +252,6 @@ class CellFrontend {
 			}
 		}
 
-		// echo '<pre>';
-		// print_r($current_field);
-		// print_r($input);
-		// echo '</pre>';
-		// wp_die( 'test saving checkbox' );
-
 		// save other method
 		foreach ($current_field as $field_key => $field_detail) {
 			if (isset($input[$field_key])) {
@@ -264,14 +266,14 @@ class CellFrontend {
 						if ($input[$field_key] == 0) {
 							delete_post_meta( $object_id, $field_key);
 						} else {
-							update_post_meta( $object_id, $field_key, $input[$field_key]);
+							update_post_meta( $object_id, $field_key, wp_kses_data($input[$field_key]));
 						}
 						break;
 					case 'taxonomy':
 						wp_set_object_terms( $object_id, intval($input[$field_key]), $field_key);
 						break;
 					default:
-						call_user_func_array($field_detail['method'], array($object_id, $field_key, $input[$field_key]));
+						call_user_func_array($field_detail['method'], array($object_id, $field_key, wp_kses_data($input[$field_key])));
 						break;
 				}
 				// special way to save for checkbox
@@ -292,6 +294,7 @@ class CellFrontend {
 	}
 
 	function editing_endpoint() {
+
 		add_rewrite_endpoint( 'edit', EP_PERMALINK );
 	}
 }
