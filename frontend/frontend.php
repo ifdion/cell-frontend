@@ -48,6 +48,9 @@ class CellFrontend {
 
 		$form_class = '';
 
+		if (isset($attribute['class'])) {
+			$form_class .= $attribute['class'];
+		}
 		if (isset($attribute['wizard'])) {
 			$wizard = $attribute['wizard'];
 			$next_step = $this->frontend_args['redirect-wizard'];
@@ -210,7 +213,7 @@ class CellFrontend {
 			if($field_detail['type'] == 'checkbox' && $field_key != 'delete' && !isset($input[$field_key])){
 				$input[$field_key] = 0;
 			}
-			if ($field_detail['method'] == 'base' && ($input[$field_key] != $input[$field_key.'_old'])) {
+			if ($field_detail['method'] == 'base' && isset($input[$field_key]) && ($input[$field_key] != $input[$field_key.'_old'])) {
 				$update_post_args[$field_key] = wp_kses_data($input[$field_key]);
 			}
 			if (isset($update_post_args['post_name'])) {
@@ -228,10 +231,13 @@ class CellFrontend {
 
 			$post_date = date( 'Y-m-d H:i:s', strtotime( $update_post_args['post_date'] .' '.$post_time) );
 			$update_post_args['post_date'] = $post_date;
+			$update_post_args['post_date_gmt'] = $post_date;
 		}
 
 		// automatically publish edited post with non future date
-		
+		if ($update_post_args['post_date'] < date('Y-m-d H:i:s')) {
+			$update_post_args['post_status'] = 'publish' ; 
+		}
 
 		// create or update the object first
 		if ($edit) {
