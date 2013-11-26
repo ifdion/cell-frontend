@@ -235,7 +235,7 @@ class CellFrontend {
 		}
 
 		// automatically publish edited post with non future date
-		if ($update_post_args['post_date'] < date('Y-m-d H:i:s')) {
+		if (isset($update_post_args['post_date']) && $update_post_args['post_date'] < date('Y-m-d H:i:s')) {
 			$update_post_args['post_status'] = 'publish' ; 
 		}
 
@@ -293,6 +293,12 @@ class CellFrontend {
 				// }
 			}
 		}
+
+		// save previous state
+		if ($edit) {
+			update_post_meta( $object_id, 'previous_stare', $input );
+		}
+		
 
 		do_action( 'after_frontend_'.$args['post-type'], $object_id);
 
