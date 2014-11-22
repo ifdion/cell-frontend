@@ -53,7 +53,7 @@ add_action('plugins_loaded', 'cell_frontend_init');
 
 	// include_once ('settings.php');
 
-	include_once ('common-functions.php');
+	// include_once ('common-functions.php');
 
 	include_once ('frontend/frontend.php');
 
